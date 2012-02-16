@@ -7,4 +7,5 @@ copyright: "&copy; [Adrian Föder](http://foeder.de)"
 version: "1.0"
 
 sources:
-  - "Source/bootstrap.js"
+  - "Source/ElementPopulatorService.js"
+  - "Source/Utility.js"
