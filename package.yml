@@ -1,0 +1,10 @@
+name: "MooView"
+exports: "MooView.js"
+description: "MooTools MVC approach"
+license: "[MIT License](http://mootools.net/license.txt)"
+
+copyright: "&copy; [Adrian Föder](http://foeder.de)"
+version: "1.0"
+
+sources:
+  - "Source/bootstrap.js"
