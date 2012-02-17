@@ -12,7 +12,6 @@ authors:
   - Adrian Föder <adrian@foeder.de>
 
 requires:
-  - #Core/Class
 
 provides: [MooView.Utility]
 
@@ -44,9 +43,9 @@ MooView.Utility = {
 
 	/**
 	 * implementation of https://github.com/mootools/mootools-core/pull/2191
-	 * @TODO refactor once in MooTools release
+	 * @TODO refactor to deprecated when it's in MooTools core release
 	 */
-	Object: {
+	'Object': {
 		get: function(object, path) {
 			if (typeof path == 'string') path = path.split('.');
 			for (var i = 0, l = path.length; i < l; i++){

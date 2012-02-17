@@ -12,6 +12,7 @@ authors:
   - Adrian Föder <adrian@foeder.de>
 
 requires:
+  - Core/String
   - MooView.Utility
 
 provides: [MooView.ElementPopulatorService]
@@ -63,7 +64,7 @@ MooView.ElementPopulatorService = {
 			throw 'Automatic view resolving works only with "vnd" vendor prefixed Internet Media Type, actual is "' + mediaTypeTree + '".';
 		}
 
-		var objectPath = 'MooView.Conventional.Vendor.' + treeArray.shift() + '.' + treeArray.join('.') + 'View';
+		var objectPath = 'MooView.Conventional.Vendor.' + treeArray.join('.') + 'View';
 		var attemptedObject = MooView.Utility.Object.get(window, objectPath);
 		if (!attemptedObject) {
 			throw 'View object not found in "' + objectPath + '"';
