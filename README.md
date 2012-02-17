@@ -3,7 +3,8 @@
 ### Model existing locally
 
 ```html
-<ul data-mooview-data-source="script[data-parent-entity-uid=&quot;b7b3a925-1e1b-4d88-98d4-c08dbfdd31b6&quot;]">
+<ul
+	data-mooview-data-source="script[data-parent-entity-uid=&quot;b7b3a925-1e1b-4d88-98d4-c08dbfdd31b6&quot;]">
 </ul>
 
 <script type="application/vnd.acme.commentCollection+json"
