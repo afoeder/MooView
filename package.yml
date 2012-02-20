@@ -7,5 +7,5 @@ copyright: "&copy; [Adrian Föder](http://foeder.de)"
 version: "1.0"
 
 sources:
-  - "Source/ElementPopulatorService.js"
+  - "Source/ModelViewService.js"
   - "Source/Utility.js"
