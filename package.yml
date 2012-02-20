@@ -7,5 +7,6 @@ copyright: "&copy; [Adrian Föder](http://foeder.de)"
 version: "1.0"
 
 sources:
-  - "Source/ModelViewService.js"
+  - "Source/RoutingService.js"
   - "Source/Utility.js"
+  - "Source/View/AbstractView.js"
