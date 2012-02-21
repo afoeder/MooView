@@ -13,6 +13,7 @@ authors:
 
 requires:
   - Core/String
+  - Core/Element.Event
   - MooView.Utility
 
 provides: [MooView.RoutingService]
@@ -29,7 +30,11 @@ MooView.RoutingService = {
 	 * @access public
 	 */
 	routeDomByActionAnnotation: function() {
-		document.getElements('[data-mooview-action]').each(this.routeElement.bind(this));
+		var elements = document.getElements('[data-mooview-action]');
+		elements.each(this.routeElement.bind(this));
+		if (elements) {
+			window.fireEvent('MooView.RoutingService.routeDomByActionAnnotation:complete');
+		}
 	},
 
 	/**
