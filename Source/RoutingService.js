@@ -51,6 +51,7 @@ MooView.RoutingService = {
 
 		var controller = MooView.Utility.Object.get(window, controllerAndActionName.controllerName);
 		controller.view = this.getViewObject(routingInformation);
+		controller.view.controller = controller;
 
 			// invoke the action with the model as parameter:
 		controller[controllerAndActionName.actionMethodName](modelInstance);

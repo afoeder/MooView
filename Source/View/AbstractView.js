@@ -22,6 +22,12 @@ MooView.View.AbstractView = new Class({
 	variableContainer: {},
 
 	/**
+	 * The controller of the view
+	 * @access protected
+	 */
+	controller: undefined,
+
+	/**
 	 * @param String
 	 * @param mixed value
 	 * @access public
