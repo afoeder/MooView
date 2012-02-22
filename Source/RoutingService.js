@@ -47,26 +47,34 @@ MooView.RoutingService = {
 		var routingInformation = this.splitRoutingPattern(routing);
 
 		var controllerAndActionName = this.getControllerAndActionName(routingInformation);
+		var controllerName = controllerAndActionName.controllerName;
+		var actionMethodName = controllerAndActionName.actionMethodName;
+
 		var modelInstance = this.getModelInstanceForElement(element);
 
-		var controller = MooView.Utility.Object.get(window, controllerAndActionName.controllerName);
+		var controller = MooView.Utility.Object.get(window, controllerName);
 		controller.view = this.getViewObject(routingInformation);
-		controller.view.controller = controller;
 
 			// invoke the action with the model as parameter:
-		controller[controllerAndActionName.actionMethodName](modelInstance);
+		controller[actionMethodName](modelInstance);
 
 			// and render the output
 		var renderedOutput = controller.view.render();
 		switch (typeOf(renderedOutput)) {
 			case 'element':
-				element.grab(renderedOutput);
+			case 'elements':
+				element.adopt(renderedOutput);
 				break;
 			case 'string':
 				element.set('html', renderedOutput);
 				break;
 			default:
 				throw 'Output type ' + typeOf(renderedOutput) + ' not handled by "' + routing + '".';
+		}
+
+		var postInjectMethodName = 'postInject' + actionMethodName.capitalize();
+		if (controller[postInjectMethodName]) {
+			controller[postInjectMethodName](element);
 		}
 	},
 
