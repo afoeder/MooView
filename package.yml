@@ -10,3 +10,4 @@ sources:
   - "Source/RoutingService.js"
   - "Source/Utility.js"
   - "Source/View/AbstractView.js"
+  - "Source/Controller/AbstractController.js"

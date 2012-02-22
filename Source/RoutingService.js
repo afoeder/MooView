@@ -48,15 +48,13 @@ MooView.RoutingService = {
 
 		var controllerAndActionName = this.getControllerAndActionName(routingInformation);
 		var controllerName = controllerAndActionName.controllerName;
-		var actionMethodName = controllerAndActionName.actionMethodName;
+		var controllerInstance = MooView.Utility.Object.get(window, controllerName);
+		var controller = new controllerInstance();
+		var actionName = controllerAndActionName.actionName;
 
 		var modelInstance = this.getModelInstanceForElement(element);
 
-		var controller = MooView.Utility.Object.get(window, controllerName);
-		controller.view = this.getViewObject(routingInformation);
-
-			// invoke the action with the model as parameter:
-		controller[actionMethodName](modelInstance);
+		controller.delegate(actionName, [modelInstance]);
 
 			// and render the output
 		var renderedOutput = controller.view.render();
@@ -72,7 +70,7 @@ MooView.RoutingService = {
 				throw 'Output type ' + typeOf(renderedOutput) + ' not handled by "' + routing + '".';
 		}
 
-		var postInjectMethodName = 'postInject' + actionMethodName.capitalize();
+		var postInjectMethodName = 'postInject' + (actionName + 'Action').capitalize();
 		if (controller[postInjectMethodName]) {
 			controller[postInjectMethodName](element);
 		}
@@ -84,15 +82,13 @@ MooView.RoutingService = {
 	 */
 	getControllerAndActionName: function(routingInformation) {
 		var controllerName = routingInformation.package + '.Controller.' + routingInformation.controller + 'Controller';
-		var actionMethodName = routingInformation.action.toLowerCase() + 'Action';
+		var actionName = routingInformation.action;
 
 		if (!MooView.Utility.Object.get(window, controllerName)) {
 			throw 'Object "' + controllerName + '" does not exist.';
-		} else if (!MooView.Utility.Object.get(window, controllerName)[actionMethodName]) {
-			throw 'Method "' + actionMethodName + '" does not exist in object "' + controllerName + '".';
 		}
 
-		return { controllerName: controllerName, actionMethodName: actionMethodName };
+		return { controllerName: controllerName, actionName: actionName };
 	},
 
 	/**
@@ -127,19 +123,6 @@ MooView.RoutingService = {
 		var data = JSON.decode(dataSourceElement.get('text'));
 		var modelInstance = this.getModelInstanceByMediaType(mediaType, data);
 		return modelInstance;
-	},
-
-	/**
-	 * Retrieves the object responsible for a view
-	 * @param routingInformation
-	 */
-	getViewObject: function(routingInformation) {
-		var attemptedObject = MooView.Utility.Object.get(window, routingInformation.package + '.Template.' + routingInformation.controller + '.' + routingInformation.action);
-		if (!attemptedObject) {
-			throw 'ViewObject "' + attemptedObject + '" could not be found.';
-		} else {
-			return attemptedObject;
-		}
 	},
 
 	/**
