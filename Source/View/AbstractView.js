@@ -30,7 +30,27 @@ MooView.View.AbstractView = new Class({
 		this.variableContainer[key] = value;
 	},
 
+	/**
+	 * @return mixed
+	 */
 	render: function() {
 		throw 'You need to implement your render() method of your View on your own.';
+	},
+
+	/**
+	 * renders and returns a single element no matter if it should be actually more elements.
+	 * @return Element
+	 */
+	renderElement: function() {
+		var rendered = this.render.apply(this, arguments);
+		switch (typeOf(rendered)) {
+			case 'element': return rendered;
+				break;
+			case 'elements': return rendered.pick();
+				break;
+			case 'string': return new Element('div', {html: rendered}).getFirst();
+				break;
+			default: throw 'Rendered View output is neither string, elements not element and cannot be casted to Element.';
+		}
 	}
 });
