@@ -20,8 +20,14 @@ MooView.Controller.AbstractController = new Class({
 	 * holds this controller's full name like Acme.Package.Controller.FooController
 	 * Unfortunate workaround to hold the class's original name.
 	 * This property must be populated at the concrete class.
+	 * @var String
 	 */
 	controllerClass: undefined,
+
+	/**
+	 * @var Object MooView.View.AbstractView
+	 */
+	view: undefined,
 
 	/**
 	 * Calls an action
@@ -44,6 +50,7 @@ MooView.Controller.AbstractController = new Class({
 	/**
 	 * Fetches the responsible View object for the requested action
 	 * @param String actionName lowerCamelCased action name
+	 * @return Object MooView.View.AbstractView
 	 * @access protected
 	 */
 	resolveView: function(actionName) {
@@ -55,10 +62,11 @@ MooView.Controller.AbstractController = new Class({
 		var attemptedViewObject = viewPath.join('.') + '.Template.' + controllerName + '.' + actionName.capitalize();
 
 		var viewObject = MooView.Utility.Object.get(window, attemptedViewObject);
-		if (!viewObject) {
-			throw 'Attempted view object "' + attemptedViewObject + '" could not be found.';
-		} else {
+		if (viewObject) {
 			return viewObject;
+		} else if(console && console.info) {
+			console.info('Attempted view object "' + attemptedViewObject + '" could not be found.');
 		}
+		return undefined;
 	}.protect()
 });
