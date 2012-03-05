@@ -33,7 +33,7 @@ MooView.RoutingService = {
 		var elements = document.getElements('[data-mooview-action]');
 		elements.each(this.routeElement.bind(this));
 		if (elements) {
-			window.fireEvent('MooView.RoutingService.routeDomByActionAnnotation:complete');
+			window.fireEvent('MooView:possiblyDomChange');
 		}
 	},
 
