@@ -161,3 +161,12 @@ MooView.RoutingService = {
 		}
 	}
 };
+
+
+window.addEvent('domready', function() {
+	/**
+	 * rout/bind annotated HTML elements with their action
+	 * TODO #1: assure elements can only be applied once
+	 */
+	MooView.RoutingService.routeDomByActionAnnotation();
+});
