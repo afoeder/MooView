@@ -120,7 +120,7 @@ MooView.RoutingService = {
 		}
 		var dataSourceElement = document.getElement(dataSourceSelector);
 		var mediaType = dataSourceElement.get('type');
-		var data = JSON.decode(dataSourceElement.get('text'));
+		var data = JSON.decode(dataSourceElement.get('text').trim());
 		var modelInstance = this.getModelInstanceByMediaType(mediaType, data);
 		return modelInstance;
 	},
