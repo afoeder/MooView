@@ -22,6 +22,8 @@ provides: [MooView.RoutingService]
 */
 
 var MooView = MooView || {};
+MooView.Error = new Class({Extends: Error, name: 'MooView.Error'});
+MooView.Error.InvalidViewRenderOutput = new Class({Extends: MooView.Error, name: 'MooView.Error.InvalidViewRenderOutput'});
 
 MooView.RoutingService = {
 	/**
@@ -43,36 +45,80 @@ MooView.RoutingService = {
 	 * @access protected
 	 */
 	routeElement: function(element) {
+		var controller;
 		var routing = element.get('data-mooview-action');
 		var routingInformation = this.splitRoutingPattern(routing);
 
 		var controllerAndActionName = this.getControllerAndActionName(routingInformation);
 		var controllerName = controllerAndActionName.controllerName;
-		var controllerInstance = MooView.Utility.Object.get(window, controllerName);
-		var controller = new controllerInstance();
-		var actionName = controllerAndActionName.actionName;
+		var controllerClass = MooView.Utility.Object.get(window, controllerName);
+		if (controllerClass.prototype['scope'] === 'singleton') {
+			controller = element.retrieve('Mooview.Routing.Controller');
+		}
+		if (!controller) {
+			controller = new controllerClass();
+		}
+		controller.bootstrapElement = element;
+		controller.viewContainer = element;
+		element.store('Mooview.Routing.Controller', controller);
 
+		var actionName = controllerAndActionName.actionName;
 		var modelInstance = this.getModelInstanceForElement(element);
 
-		controller.delegate(actionName, [modelInstance]);
+		var deferrableInvokation = function() {
+			controller.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
+			try {
+				this.processOutput(controller, actionName);
+			} catch(exception) {
+				if (exception.name === 'MooView.View.InvalidViewRenderOutput') {
+					throw new Error(exception.message.replace(/\%s/, element.get('data-mooview-action')));
+				} else throw exception;
+			}
+		}.bind(this);
+		if (element.get('data-mooview-defer')) {
+			this.setDeferredInvokation(element, deferrableInvokation);
+		} else {
+			deferrableInvokation();
+		}
+	},
+
+	setDeferredInvokation: function(element, deferrableInvokation) {
+		var parts = element.get('data-mooview-defer').split('@');
+		var event = parts[0];
+		var target = (parts[1] === 'self' ? element : null);
+
+		target.addEvent(event, deferrableInvokation);
+	},
+
+	/**
+	 * Processes the actual View itself
+	 * @param Object controller
+	 * @param Element element
+	 * @param string actionName
+	 */
+	processOutput: function (controller, actionName) {
+		if (!controller.view || !controller.viewContainer) return;
 
 			// and render the output
 		var renderedOutput = controller.view.render();
 		switch (typeOf(renderedOutput)) {
 			case 'element':
 			case 'elements':
-				element.adopt(renderedOutput);
+				controller.viewContainer.adopt(renderedOutput);
 				break;
 			case 'string':
-				element.set('html', renderedOutput);
+				controller.viewContainer.set('html', renderedOutput);
+				break;
+			case 'null':
+					// just do nothing, the controller did its stuff on its own
 				break;
 			default:
-				throw 'Output type ' + typeOf(renderedOutput) + ' not handled by "' + routing + '".';
+				throw new MooView.Error.InvalidViewRenderOutput('Output type ' + typeOf(renderedOutput) + ' not handled by "%s".');
 		}
 
 		var postInjectMethodName = 'postInject' + (actionName + 'Action').capitalize();
 		if (controller[postInjectMethodName]) {
-			controller[postInjectMethodName](element);
+			controller[postInjectMethodName](controller.viewContainer);
 		}
 	},
 
@@ -103,7 +149,7 @@ MooView.RoutingService = {
 		var controllerParts = controllerActionParts[0].capitalize().split('.');
 		var controller = controllerParts.pop();
 		var package = controllerParts.join('.');
-		var action = controllerActionParts[1].toLowerCase().capitalize();
+		var action = controllerActionParts[1].capitalize();
 
 		return { package: package, controller: controller, action: action };
 	},
@@ -116,7 +162,7 @@ MooView.RoutingService = {
 	getModelInstanceForElement: function(element) {
 		var dataSourceSelector = element.get('data-mooview-data-source');
 		if (!dataSourceSelector) {
-			throw 'Currently only data source by an element selector are supported.';
+			return undefined;
 		}
 		var dataSourceElement = document.getElement(dataSourceSelector);
 		var mediaType = dataSourceElement.get('type');

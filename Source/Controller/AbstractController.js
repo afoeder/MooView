@@ -25,9 +25,27 @@ MooView.Controller.AbstractController = new Class({
 	controllerClass: undefined,
 
 	/**
+	 * The scope of this controller. May be "prototype" or "singleton".
+	 */
+	scope: 'prototype',
+
+	/**
 	 * @var Object MooView.View.AbstractView
 	 */
 	view: undefined,
+
+	/**
+	 * The container the view content will be populated with. Will be set during runtime by the RoutingService
+	 * and can be set via controller actions.
+	 * @var Element
+	 */
+	viewContainer: undefined,
+
+	/**
+	 * Set via the routing service to the element that initially was responsible to trigger the controller's request
+	 * @var Element
+	 */
+	bootstrapElement: undefined,
 
 	/**
 	 * Calls an action
