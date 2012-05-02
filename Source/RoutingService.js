@@ -127,7 +127,7 @@ MooView.RoutingService = {
 	 * @return Object Object with controller path and action name, e.g. { controllerName: Acme.Comments.Controller.ThreadController, actionMethodName: showAction }
 	 */
 	getControllerAndActionName: function(routingInformation) {
-		var controllerName = routingInformation.package + '.Controller.' + routingInformation.controller + 'Controller';
+		var controllerName = routingInformation['package'] + '.Controller.' + routingInformation.controller + 'Controller';
 		var actionName = routingInformation.action;
 
 		if (!MooView.Utility.Object.get(window, controllerName)) {
@@ -148,10 +148,10 @@ MooView.RoutingService = {
 
 		var controllerParts = controllerActionParts[0].capitalize().split('.');
 		var controller = controllerParts.pop();
-		var package = controllerParts.join('.');
+		var packageName = controllerParts.join('.');
 		var action = controllerActionParts[1].capitalize();
 
-		return { package: package, controller: controller, action: action };
+		return { 'package': packageName, controller: controller, action: action };
 	},
 
 	/**
