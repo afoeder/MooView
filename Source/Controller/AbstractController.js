@@ -56,10 +56,16 @@ MooView.Controller.AbstractController = new Class({
 	delegate: function(actionName, actionArguments) {
 			// lowerCase the first char of actionName
 		var actionName = actionName.replace(/^[A-Z]/, function(match){return match.toLowerCase();});
+		var initializeActionMethodName = 'initialize'
+				+ actionName.replace(/^[a-z]/, function(match){return match.toUpperCase();})
+				+ 'Action';
 
 		this.view = this.resolveView(actionName);
 		if (!this[actionName + 'Action']) {
 			throw 'Method "' + actionName + 'Action" not found in ' + this.controllerClass;
+		}
+		if (this[initializeActionMethodName]) {
+			this[initializeActionMethodName].call(this);
 		}
 
 		return this[actionName + 'Action'].apply(this, actionArguments);
