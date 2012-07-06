@@ -61,6 +61,7 @@ MooView.RoutingService = {
 		controller.bootstrapElement = element;
 		controller.viewContainer = element;
 		element.store('Mooview.Routing.Controller', controller);
+		if (controller.initializeObject) controller.initializeObject();
 
 		var actionName = controllerAndActionName.actionName;
 		var modelInstance = this.getModelInstanceForElement(element);
