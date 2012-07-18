@@ -31,6 +31,13 @@ MooView.View.AbstractView = new Class({
 	},
 
 	/**
+	 * Clears the VariableContainer
+	 */
+	clearVariableContainer: function() {
+		this.variableContainer = {};
+	},
+
+	/**
 	 * @return mixed
 	 */
 	render: function() {
@@ -46,9 +53,9 @@ MooView.View.AbstractView = new Class({
 		switch (typeOf(rendered)) {
 			case 'element': return rendered;
 				break;
-			case 'elements': return rendered.pick();
+			case 'elements': return (new Element('div')).adopt(rendered);
 				break;
-			case 'string': return new Element('div', {html: rendered}).getFirst();
+			case 'string': return new Element('div', {html: rendered});
 				break;
 			default: throw 'Rendered View output is neither string, elements not element and cannot be casted to Element.';
 		}

@@ -20,6 +20,10 @@ provides: [MooView.Utility]
 
 var MooView = MooView || {};
 
+(function(){
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
 MooView.Utility = {
 	/**
 	 * Parses an Internet Media Type string like application/rss+xml or application/vnd.mozilla.xul+xml into an accessible object.
@@ -70,3 +74,4 @@ MooView.Utility = {
 		}
 	}
 };
+})();

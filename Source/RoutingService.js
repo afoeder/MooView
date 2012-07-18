@@ -53,20 +53,21 @@ MooView.RoutingService = {
 		var controllerName = controllerAndActionName.controllerName;
 		var controllerClass = MooView.Utility.Object.get(window, controllerName);
 		if (controllerClass.prototype['scope'] === 'singleton') {
-			controller = element.retrieve('Mooview.Routing.Controller');
+			controller = element.retrieve('MooView.Routing.Controller');
 		}
 		if (!controller) {
 			controller = new controllerClass();
 		}
 		controller.bootstrapElement = element;
 		controller.viewContainer = element;
-		element.store('Mooview.Routing.Controller', controller);
+		element.store('MooView.Routing.Controller', controller);
 		if (controller.initializeObject) controller.initializeObject();
 
 		var actionName = controllerAndActionName.actionName;
 		var modelInstance = this.getModelInstanceForElement(element);
 
 		var deferrableInvokation = function() {
+			if ('domevent' === typeOf(arguments[0])) controller.bootstrapElement.store('MooView.Routing.deferEvent', arguments[0]);
 			controller.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
 			try {
 				this.processOutput(controller, actionName);
