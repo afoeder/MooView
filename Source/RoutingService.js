@@ -32,7 +32,7 @@ MooView.RoutingService = {
 	 * @access public
 	 */
 	routeDomByActionAnnotation: function() {
-		var elements = document.getElements('[data-mooview-action]');
+		var elements = document.getElements('[data-mooview-action],[data-mooview-controller]');
 		elements.each(this.routeElement.bind(this));
 		if (elements) {
 			window.fireEvent('MooView:possiblyDomChange');
@@ -46,7 +46,7 @@ MooView.RoutingService = {
 	 */
 	routeElement: function(element) {
 		var controller;
-		var routing = element.get('data-mooview-action');
+		var routing = element.get('data-mooview-action') || element.get('data-mooview-controller');
 		var routingInformation = this.splitRoutingPattern(routing);
 
 		var controllerAndActionName = this.getControllerAndActionName(routingInformation);
@@ -63,24 +63,26 @@ MooView.RoutingService = {
 		element.store('MooView.Routing.Controller', controller);
 		if (controller.initializeObject) controller.initializeObject();
 
-		var actionName = controllerAndActionName.actionName;
-		var modelInstance = this.getModelInstanceForElement(element);
+		if (controllerAndActionName.actionName) {
+			var actionName = controllerAndActionName.actionName;
+			var modelInstance = this.getModelInstanceForElement(element);
 
-		var deferrableInvokation = function() {
-			if ('domevent' === typeOf(arguments[0])) controller.bootstrapElement.store('MooView.Routing.deferEvent', arguments[0]);
-			controller.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
-			try {
-				this.processOutput(controller, actionName);
-			} catch(exception) {
-				if (exception.name === 'MooView.View.InvalidViewRenderOutput') {
-					throw new Error(exception.message.replace(/\%s/, element.get('data-mooview-action')));
-				} else throw exception;
+			var deferrableInvokation = function() {
+				if ('domevent' === typeOf(arguments[0])) controller.bootstrapElement.store('MooView.Routing.deferEvent', arguments[0]);
+				controller.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
+				try {
+					this.processOutput(controller, actionName);
+				} catch(exception) {
+					if (exception.name === 'MooView.View.InvalidViewRenderOutput') {
+						throw new Error(exception.message.replace(/\%s/, element.get('data-mooview-action')));
+					} else throw exception;
+				}
+			}.bind(this);
+			if (element.get('data-mooview-defer')) {
+				this.setDeferredInvokation(element, deferrableInvokation);
+			} else {
+				deferrableInvokation();
 			}
-		}.bind(this);
-		if (element.get('data-mooview-defer')) {
-			this.setDeferredInvokation(element, deferrableInvokation);
-		} else {
-			deferrableInvokation();
 		}
 	},
 
@@ -146,12 +148,12 @@ MooView.RoutingService = {
 	 */
 	splitRoutingPattern: function(pattern) {
 		var controllerActionParts = pattern.split('@');
-		if (controllerActionParts.length !== 2) throw 'Controller and action designation must have exactly one @ char, "' + pattern + '" given.';
+		if (controllerActionParts.length > 2) throw 'Controller and action designation must have no or one @ char, "' + pattern + '" given.';
 
 		var controllerParts = controllerActionParts[0].capitalize().split('.');
 		var controller = controllerParts.pop();
 		var packageName = controllerParts.join('.');
-		var action = controllerActionParts[1].capitalize();
+		var action = controllerActionParts[1] ? controllerActionParts[1].capitalize() : undefined;
 
 		return { 'package': packageName, controller: controller, action: action };
 	},
