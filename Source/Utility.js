@@ -25,6 +25,7 @@ var MooView = MooView || {};
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
 MooView.Utility = {
+
 	/**
 	 * Parses an Internet Media Type string like application/rss+xml or application/vnd.mozilla.xul+xml into an accessible object.
 	 * @param String internetMediaType
@@ -43,6 +44,30 @@ MooView.Utility = {
 		ret.suffix = treeSuffixSplit[1];
 
 		return ret;
+	},
+
+	/**
+	 * Substitutes a template, given by a e.g. a <script> tag on the site, by occurrences of [%=fooBar%],
+	 * with the appropriate values in templateVariables
+	 * @param selector String
+	 * @param templateVariables Object
+	 */
+	parseAndRenderTemplate: function(selector, templateVariables) {
+		var templateString = this.getTemplateFromDocument(selector);
+		return this.renderTemplate(templateString, templateVariables);
+	},
+
+	getTemplateFromDocument: function(selector) {
+		return document.getElement(selector).get('html');
+	},
+
+	renderTemplate: function(templateCode, templateVariables) {
+		return templateCode.substitute(templateVariables, (/\[%=(.+?)%\]/g));
+	},
+
+	renderTemplateToElement: function(templateCode, templateVariables) {
+		var renderedTemplateCode = this.renderTemplate(templateCode, templateVariables);
+		return (new Element('div', {html: renderedTemplateCode})).getFirst();
 	},
 
 	/**

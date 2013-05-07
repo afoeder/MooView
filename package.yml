@@ -7,7 +7,10 @@ copyright: "&copy; [Adrian Föder](http://foeder.de)"
 version: "1.0"
 
 sources:
+  - "Source/PersistenceManager.js"
   - "Source/RoutingService.js"
   - "Source/Utility.js"
   - "Source/View/AbstractView.js"
   - "Source/Controller/AbstractController.js"
+  - "Source/Domain/ReponseHydrator.js"
+  - "Source/Domain/Repository/AbstractRepository.js"
