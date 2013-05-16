@@ -68,12 +68,12 @@ define('MooView/Domain/ResponseHydrator', function() {
 				var setterMethodName = this._getSetterNameForProperty(key);
 				if (typeof modelInstance[setterMethodName] === 'function') {
 					modelInstance[setterMethodName](value);
-				} else if (modelInstance.$constructor.prototype.hasOwnProperty(key) || modelInstance.$constructor.parent && modelInstance.$constructor.parent.prototype.hasOwnProperty('personName')) {
+				} else if (modelInstance.$constructor.prototype.hasOwnProperty(key) || modelInstance.$constructor.parent && modelInstance.$constructor.parent.prototype.hasOwnProperty(key)) {
 					modelInstance[key] = value;
 				}
 			}, this);
 
-			require('MooView/Domain/Repository/AbstractRepository').prototype.getRepositoryForEntity(className).add(data);
+			require('MooView/Domain/Repository/AbstractRepository').prototype.getRepositoryForEntity(className).add(modelInstance);
 
 			return modelInstance;
 		},

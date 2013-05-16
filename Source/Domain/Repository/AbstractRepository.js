@@ -68,7 +68,6 @@ define('MooView/Domain/Repository/AbstractRepository', ['MooView/PersistenceMana
 		 * Adds an object
 		 */
 		add: function(object) {
-			console.log('adding to PM:', object);
 			PersistenceManager.add(object);
 		}
 	});

@@ -25,10 +25,29 @@ define('MooView/PersistenceManager', ['MooView/Domain/ResponseHydrator'], functi
 		rawStorage: {
 			_data: {},
 			setItem: function(key, data) {
-				sessionStorage ? sessionStorage.setItem('MooViewRepositoryStorage:' + key, data) : this._data[key] = data;
+				if (sessionStorage) {
+					var storageKey = 'MooViewRepositoryStorage:' + key;
+					sessionStorage.setItem(storageKey, data);
+					var expiryEntries = JSON.decode(sessionStorage.getItem('wishbase.expiries') || '{}');
+					expiryEntries[storageKey] = new Date();
+					sessionStorage.setItem('wishbase.expiries', JSON.encode(expiryEntries));
+				} else {
+					this._data[key] = data;
+				}
 			},
 			getItem: function(key) {
-				return sessionStorage ? sessionStorage.getItem('MooViewRepositoryStorage:' + key) || undefined : this._data[key];
+				if (sessionStorage) {
+					var storageKey = 'MooViewRepositoryStorage:' + key;
+					var expiryEntries = JSON.decode(sessionStorage.getItem('wishbase.expiries') || '{}');
+					if (expiryEntries[storageKey] && (new Date()).getTime() - (new Date(expiryEntries[storageKey])).getTime() > 1000 * 60 * 5) {
+						sessionStorage.removeItem(storageKey);
+					} else {
+						return sessionStorage.getItem(storageKey) || undefined;
+					}
+				} else {
+					return this._data[key];
+				}
+				return undefined;
 			}
 		},
 
