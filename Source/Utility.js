@@ -71,6 +71,15 @@ MooView.Utility = {
 	},
 
 	/**
+	 * Replaces a dotted path with a slashed path for requireJS
+	 * @param moduleName
+	 * @returns {*}
+	 */
+	getSlashedModuleName: function(moduleName) {
+		return moduleName.replace(/\./g, '/');
+	},
+
+	/**
 	 * implementation of https://github.com/mootools/mootools-core/pull/2191
 	 * @TODO refactor to deprecated when it's in MooTools core release
 	 */

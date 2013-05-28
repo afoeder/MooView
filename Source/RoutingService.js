@@ -20,7 +20,6 @@ provides: [MooView.RoutingService]
 
 ...
 */
-
 var MooView = MooView || {};
 MooView.Error = new Class({Extends: Error, name: 'MooView.Error'});
 MooView.Error.InvalidViewRenderOutput = new Class({Extends: MooView.Error, name: 'MooView.Error.InvalidViewRenderOutput'});
@@ -39,50 +38,72 @@ MooView.RoutingService = {
 		}
 	},
 
+	routeElement: function(element) {
+		var controller,
+			routing = element.get('data-mooview-action') || element.get('data-mooview-controller'),
+			routingInformation = this.splitRoutingPattern(routing);
+
+		var controllerAndActionName = this.getControllerAndActionName(routingInformation),
+			controllerName = controllerAndActionName.controllerName,
+			actionName = controllerAndActionName.actionName;
+
+		var controllerClass = MooView.Utility.Object.get(window, controllerName);
+		if (!controllerClass) {
+			var moduleName = MooView.Utility.getSlashedModuleName(controllerName);
+			var self = this;
+			require([moduleName], function(controllerClass){
+				self.initializeForElement(element, controllerClass, actionName);
+			})
+		} else {
+			this.initializeForElement(element, controllerClass, actionName);
+		}
+	},
+
 	/**
 	 * Gets element's action annotation and invokes it using the appropriate controller
 	 * @param element Element with attribute 'data-mooview-action' set, e.g. Acme.Comments.Thread@Show
 	 * @access protected
 	 */
-	routeElement: function(element) {
-		var controller;
-		var routing = element.get('data-mooview-action') || element.get('data-mooview-controller');
-		var routingInformation = this.splitRoutingPattern(routing);
-
-		var controllerAndActionName = this.getControllerAndActionName(routingInformation);
-		var controllerName = controllerAndActionName.controllerName;
-		var controllerClass = MooView.Utility.Object.get(window, controllerName);
+	initializeForElement: function(element, controllerClass, actionName) {
+		var controllerInstance;
 		if (controllerClass.prototype['scope'] === 'singleton') {
-			controller = element.retrieve('MooView.Routing.Controller');
+			controllerInstance = element.retrieve('MooView.Routing.Controller');
 		}
-		if (!controller) {
-			controller = new controllerClass();
+		if (!controllerInstance) {
+			controllerInstance = new controllerClass();
 		}
-		controller.bootstrapElement = element;
-		controller.viewContainer = element;
-		element.store('MooView.Routing.Controller', controller);
-		if (controller.initializeObject) controller.initializeObject();
+		controllerInstance.bootstrapElement = element;
+		controllerInstance.viewContainer = element;
+		element.store('MooView.Routing.Controller', controllerInstance);
+		if (controllerInstance.initializeObject) controllerInstance.initializeObject();
 
-		if (controllerAndActionName.actionName) {
-			var actionName = controllerAndActionName.actionName;
-			var modelInstance = this.getModelInstanceForElement(element);
+		var modelModuleNameAndData = this.getModelModuleNameAndDataForElement(element);
+		if (modelModuleNameAndData !== undefined) {
+			require([modelModuleNameAndData.moduleName], function(ModelClass) {
+				var modelInstance = new ModelClass(modelModuleNameAndData.data);
+				this.execute(element, controllerInstance, actionName, modelInstance);
+			}.bind(this));
+		} else {
+			this.execute(element, controllerInstance, actionName);
+		}
+	},
 
-			var deferrableInvokation = function() {
-				if ('domevent' === typeOf(arguments[0])) controller.bootstrapElement.store('MooView.Routing.deferEvent', arguments[0]);
-				controller.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
-				try {
-					this.processOutput(controller, actionName);
-				} catch(exception) {
-					if (exception.name === 'MooView.View.InvalidViewRenderOutput') {
-						throw new Error(exception.message.replace(/\%s/, element.get('data-mooview-action')));
-					} else throw exception;
-				}
-			}.bind(this);
-			if (element.get('data-mooview-defer')) {
-				this.setDeferredInvokation(element, deferrableInvokation);
-			} else {
-				deferrableInvokation();
+	execute: function(element, controllerInstance, actionName, modelInstance) {
+		var deferrableInvokation = function() {
+			if ('domevent' === typeOf(arguments[0])) controllerInstance.bootstrapElement.store('MooView.Routing.deferEvent', arguments[0]);
+			controllerInstance.delegate(actionName, (modelInstance !== undefined ? [modelInstance] : undefined));
+			try {
+				this.processOutput(controllerInstance, actionName);
+			} catch(exception) {
+				if (exception.name === 'MooView.View.InvalidViewRenderOutput') {
+					throw new Error(exception.message.replace(/\%s/, element.get('data-mooview-action')));
+				} else throw exception;
 			}
+		}.bind(this);
+		if (element.get('data-mooview-defer')) {
+			this.setDeferredInvokation(element, deferrableInvokation);
+		} else {
+			deferrableInvokation();
 		}
 	},
 
@@ -133,11 +154,6 @@ MooView.RoutingService = {
 	getControllerAndActionName: function(routingInformation) {
 		var controllerName = routingInformation['package'] + '.Controller.' + routingInformation.controller + 'Controller';
 		var actionName = routingInformation.action;
-
-		if (!MooView.Utility.Object.get(window, controllerName)) {
-			throw 'Object "' + controllerName + '" does not exist.';
-		}
-
 		return { controllerName: controllerName, actionName: actionName };
 	},
 
@@ -163,7 +179,7 @@ MooView.RoutingService = {
 	 * @param element
 	 * @return Object
 	 */
-	getModelInstanceForElement: function(element) {
+	getModelModuleNameAndDataForElement: function(element) {
 		var dataSourceSelector = element.get('data-mooview-data-source');
 		if (!dataSourceSelector) {
 			return undefined;
@@ -171,29 +187,22 @@ MooView.RoutingService = {
 		var dataSourceElement = document.getElement(dataSourceSelector);
 		var mediaType = dataSourceElement.get('type');
 		var data = JSON.decode(dataSourceElement.get('text').trim());
-		var modelInstance = this.getModelInstanceByMediaType(mediaType, data);
-		return modelInstance;
+		var ret = {
+			moduleName: this.getModelModuleNameByMediaType(mediaType),
+			data: data
+		};
+		return ret;
 	},
 
 	/**
-	 *
-	 * @param mediaType
-	 * @param dataJson
-	 */
-	getModelInstanceByMediaType: function(mediaType, data) {
-		var modelObjectName = this.getModelClassByMediaType(mediaType);
-		return new modelObjectName(data);
-	},
-
-	/**
-	 * Gets the object by the provided media type tree
+	 * Gets the object name by the provided media type tree
 	 * Per convention (!) the first element is popped of if it's "vnd", then the view object is expected to be located under e.g. MooView.Conventional.Vendor.[Acme].[CommentCollection]View
 	 * Note the tree is transformed to be Uppercasefirst on each item.
 	 * @param String mediaType The media type, e.g. 'model/vnd.acme.commentCollection+json'
-	 * @return Object
+	 * @return String The module name, with slashes
 	 * @TODO allow injecting a resolver that doesn't need the conventional object tree
 	 */
-	getModelClassByMediaType: function(mediaType) {
+	getModelModuleNameByMediaType: function(mediaType) {
 		var mediaTypeParts = MooView.Utility.parseInternetMediaType(mediaType);
 		if (mediaTypeParts.type !== 'model') {
 			throw 'Internet media type must be "model", "' + mediaTypeParts.type + '" given, in "' + mediaType + '".';
@@ -203,19 +212,13 @@ MooView.RoutingService = {
 			// strip optional vnd-Prefix
 		objectPath = objectPath.replace(/^Vnd\./, '');
 
-		var attemptedObject = MooView.Utility.Object.get(window, objectPath);
-		if (!attemptedObject) {
-			throw 'Object not found in "' + objectPath + '"';
-		} else {
-			return attemptedObject;
-		}
+		return MooView.Utility.getSlashedModuleName(objectPath);
 	}
 };
 
-
 window.addEvent('domready', function() {
 	/**
-	 * rout/bind annotated HTML elements with their action
+	 * route/bind annotated HTML elements with their action
 	 * TODO #1: assure elements can only be applied once
 	 */
 	MooView.RoutingService.routeDomByActionAnnotation();
