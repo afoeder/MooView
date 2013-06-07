@@ -77,14 +77,16 @@ MooView.RoutingService = {
 		element.store('MooView.Routing.Controller', controllerInstance);
 		if (controllerInstance.initializeObject) controllerInstance.initializeObject();
 
-		var modelModuleNameAndData = this.getModelModuleNameAndDataForElement(element);
-		if (modelModuleNameAndData !== undefined) {
-			require([modelModuleNameAndData.moduleName], function(ModelClass) {
-				var modelInstance = new ModelClass(modelModuleNameAndData.data);
-				this.execute(element, controllerInstance, actionName, modelInstance);
-			}.bind(this));
-		} else {
-			this.execute(element, controllerInstance, actionName);
+		if (actionName !== undefined) {
+			var modelModuleNameAndData = this.getModelModuleNameAndDataForElement(element);
+			if (modelModuleNameAndData !== undefined) {
+				require([modelModuleNameAndData.moduleName], function(ModelClass) {
+					var modelInstance = new ModelClass(modelModuleNameAndData.data);
+					this.execute(element, controllerInstance, actionName, modelInstance);
+				}.bind(this));
+			} else {
+				this.execute(element, controllerInstance, actionName);
+			}
 		}
 	},
 
