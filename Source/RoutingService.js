@@ -147,6 +147,7 @@ MooView.RoutingService = {
 		if (controller[postInjectMethodName]) {
 			controller[postInjectMethodName](controller.viewContainer);
 		}
+		window.fireEvent('MooView:possiblyDomChange');
 	},
 
 	/**
