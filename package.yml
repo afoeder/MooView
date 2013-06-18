@@ -11,6 +11,7 @@ sources:
   - "Source/RoutingService.js"
   - "Source/Utility.js"
   - "Source/View/AbstractView.js"
+  - "Source/View/DomElementFedView.js"
   - "Source/Controller/AbstractController.js"
   - "Source/Domain/ReponseHydrator.js"
   - "Source/Domain/Repository/AbstractRepository.js"

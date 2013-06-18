@@ -15,6 +15,7 @@ requires:
 ...
 */
 define('MooView/Controller/AbstractController', function(){
+
 	return new Class({
 		/**
 		 * holds this controller's full name like Acme.Package.Controller.FooController
@@ -79,6 +80,17 @@ define('MooView/Controller/AbstractController', function(){
 		 * @access protected
 		 */
 		resolveView: function(actionName, actionInvocation) {
+			var templateSelector, templateElement;
+			if ((templateSelector = this.bootstrapElement.get('data-mooview-template'))
+				&& (templateElement = document.getElement(templateSelector))) {
+				if(require.defined('MooView/View/DomElementFedView')) {
+					var DomElementFedView = require('MooView/View/DomElementFedView');
+					this.view = new DomElementFedView(templateElement);
+					actionInvocation();
+				}
+				return;
+			}
+
 			var viewPath = this.controllerClass.replace(/Controller$/, '').split('.');
 			var controllerName = viewPath.pop();
 			if ('Controller' !== viewPath.pop()) {
